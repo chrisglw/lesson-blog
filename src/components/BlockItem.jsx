@@ -21,13 +21,18 @@ const BlockItem = ({ id, block, onChange, onDelete }) => {
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
       className={`block ${isDragging ? 'dragging' : ''}`}
     >
       <div className="block-header">
+        <span className="drag-handle" {...attributes} {...listeners}>≡</span>
         <p>{block.type.toUpperCase()}</p>
-        <button className="delete-button" onClick={() => onDelete(id)}>×</button>
+        <button
+          type="button"
+          className="delete-button"
+          onClick={() => onDelete(id)}
+        >
+          ×
+        </button>
       </div>
       <textarea
         value={block.content}

@@ -25,9 +25,7 @@ const Dashboard = () => {
   const [visible, setVisible] = useState(true);
   const [blocks, setBlocks] = useState([]);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor)
-  );
+  const sensors = useSensors(useSensor(PointerSensor));
 
   const handleAddBlock = (type) => {
     setBlocks([...blocks, { id: Date.now().toString(), type, content: '' }]);
@@ -46,40 +44,40 @@ const Dashboard = () => {
   const handleDragEnd = (event) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-
     const oldIndex = blocks.findIndex((b) => b.id === active.id);
     const newIndex = blocks.findIndex((b) => b.id === over.id);
-
     setBlocks((prev) => arrayMove(prev, oldIndex, newIndex));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!title || !category || !order) {
       alert('Please fill all required fields.');
       return;
     }
 
-    await addDoc(collection(db, 'lessons'), {
-      title,
-      category,
-      order: parseInt(order),
-      visible,
-      blocks,
-      timestamp: Timestamp.now(),
-    });
+    try {
+      await addDoc(collection(db, 'lessons'), {
+        title,
+        category,
+        order: parseInt(order),
+        visible,
+        blocks,
+        timestamp: Timestamp.now(),
+      });
 
-    alert('Lesson created!');
-
-    // Reset inputs after slight delay to avoid browser "required" bug
-    setTimeout(() => {
-      setTitle('');
-      setCategory('');
-      setOrder('');
-      setVisible(true);
-      setBlocks([]);
-    }, 100);
+      alert('Lesson created!');
+      setTimeout(() => {
+        setTitle('');
+        setCategory('');
+        setOrder('');
+        setVisible(true);
+        setBlocks([]);
+      }, 100);
+    } catch (error) {
+      console.error('Error saving lesson:', error);
+      alert('Error saving lesson. Check the console for details.');
+    }
   };
 
   return (
@@ -122,7 +120,6 @@ const Dashboard = () => {
 
         <div className="blocks-section">
           <h3>Lesson Blocks</h3>
-
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
