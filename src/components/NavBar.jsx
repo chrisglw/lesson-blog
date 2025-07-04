@@ -4,7 +4,7 @@ import '../styles/NavBar.css';
 const Navbar = () => {
   return (
     <nav className="navbar">
-      <div className="logo">MyLearningSite</div>
+      <div className="logo">Christian's Learning</div>
       <ul className="nav-links">
         <li>
           <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>
