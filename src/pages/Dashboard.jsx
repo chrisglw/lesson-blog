@@ -21,6 +21,7 @@ import '../styles/Dashboard.css';
 const Dashboard = () => {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
+  const [difficulty, setDifficulty] = useState('');
   const [order, setOrder] = useState('');
   const [visible, setVisible] = useState(true);
   const [blocks, setBlocks] = useState([]);
@@ -63,6 +64,7 @@ const Dashboard = () => {
         order: parseInt(order),
         visible,
         blocks,
+        ...(difficulty && { difficulty }),
         timestamp: Timestamp.now(),
       });
 
@@ -70,6 +72,7 @@ const Dashboard = () => {
       setTimeout(() => {
         setTitle('');
         setCategory('');
+        setDifficulty('');
         setOrder('');
         setVisible(true);
         setBlocks([]);
@@ -97,6 +100,12 @@ const Dashboard = () => {
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           required
+        />
+        <input
+          type="text"
+          placeholder="Difficulty (optional, e.g., Easy)"
+          value={difficulty}
+          onChange={(e) => setDifficulty(e.target.value)}
         />
         <input
           type="number"

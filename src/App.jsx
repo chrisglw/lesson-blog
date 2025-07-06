@@ -3,7 +3,8 @@ import Navbar from './components/NavBar';
 import { Routes, Route } from 'react-router-dom';
 
 import Home from './pages/Home';
-// import Lessons from './pages/Lessons';
+import Lessons from './pages/Lessons';
+import LessonDetail from './pages/LessonDetail';
 import Dashboard from './pages/Dashboard';
 
 
@@ -15,7 +16,8 @@ function App() {
       <div className="main-content">
         <Routes>
           <Route path="/" element={<Home />} />
-          {/* <Route path="/lessons" element={<Lessons />} /> */}
+          <Route path="/lessons" element={<Lessons />} />
+          <Route path="/lesson/:id" element={<LessonDetail />} />
           <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </div>

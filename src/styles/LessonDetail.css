@@ -1,0 +1,77 @@
+/* Full-width layout with comfortable reading margins */
+.lesson-detail {
+  width: 100%;
+  max-width: none;
+  padding: 3rem 5vw;
+  color: #c7c6c6;
+  font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+  background-color: #d8d7d7;
+  line-height: 1.7;
+}
+
+/* Big bold lesson title like a Markdown H1 */
+.lesson-title {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  color: black;
+  border-bottom: 3px solid black;
+  padding-bottom: 0.5rem;
+}
+
+/* Optional meta info line below the title */
+.lesson-meta {
+  font-size: 1rem;
+  color: black;
+  margin-bottom: 2.5rem;
+}
+
+/* Subtitle as H2 */
+.lesson-subtitle {
+  font-size: 2rem;
+  font-weight: 600;
+  color: black;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* Paragraphs — normal markdown feel */
+.lesson-paragraph {
+  font-size: 1.1rem;
+  margin: 1.25rem 0;
+  color: black;
+  white-space: pre-line;
+}
+
+/* Code blocks */
+.lesson-code {
+  background-color: #1e1e1e;
+  color: #00e676;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 2rem 0;
+  font-size: 0.95rem;
+}
+
+.lesson-code code {
+  font-family: 'Courier New', monospace;
+  white-space: pre-wrap;
+}
+
+/* Optional: fade-in animation on mount */
+.lesson-blocks {
+  animation: fadeIn 0.4s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Loading fallback */
+.lesson-loading {
+  text-align: center;
+  color: #aaa;
+  margin-top: 4rem;
+  font-size: 1.2rem;
+}

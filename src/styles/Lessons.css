@@ -1,0 +1,32 @@
+.lessons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.lesson-card {
+  background: #2a2a2a;
+  padding: 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+  border: 1px solid #444;
+}
+
+.lesson-card:hover {
+  background-color: #3a3a3a;
+}
+
+.lesson-detail {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem;
+  color: white;
+}
+
+.lesson-blocks .block {
+  margin-top: 1rem;
+  background: #1e1e1e;
+  padding: 1rem;
+  border-radius: 8px;
+}
