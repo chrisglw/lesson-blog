@@ -1,7 +1,22 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase';
+import useAuth from '../hooks/useAuth'; 
 import '../styles/NavBar.css';
 
 const Navbar = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   return (
     <nav className="navbar">
       <div className="logo">Christian's Learning</div>
@@ -21,6 +36,13 @@ const Navbar = () => {
             Dashboard
           </NavLink>
         </li>
+        {user && (
+          <li>
+            <button className="logout-button" onClick={handleLogout}>
+              Log Out
+            </button>
+          </li>
+        )}
       </ul>
     </nav>
   );
