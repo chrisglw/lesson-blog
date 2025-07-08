@@ -7,6 +7,8 @@ import Home from './pages/Home';
 import Lessons from './pages/Lessons';
 import LessonDetail from './pages/LessonDetail';
 import Dashboard from './pages/Dashboard';
+import CreateLesson from './pages/CreateLesson';
+import EditLesson from './pages/EditLesson';
 import Login from './pages/LogIn';
 
 
@@ -22,6 +24,8 @@ function App() {
           <Route path="/lesson/:id" element={<LessonDetail />} />
           {/* <Route path="/dashboard" element={<Dashboard />} /> */}
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+          <Route path="/create-lesson" element={<CreateLesson />} /> 
+          <Route path="/edit-lesson/:id" element={<EditLesson />} />
           <Route path="/login" element={<Login />} />
         </Routes>
       </div>

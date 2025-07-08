@@ -1,21 +1,48 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
 import { db } from '../firebase';
 import '../styles/LessonDetail.css';
 
 const LessonDetail = () => {
   const { id } = useParams();
   const [lesson, setLesson] = useState(null);
+  const [categoryName, setCategoryName] = useState('');
+  const [difficultyName, setDifficultyName] = useState('');
 
   useEffect(() => {
     const fetchLesson = async () => {
       const docRef = doc(db, 'lessons', id);
       const docSnap = await getDoc(docRef);
+
       if (docSnap.exists()) {
-        setLesson(docSnap.data());
+        const data = docSnap.data();
+        setLesson(data);
+
+        // Fetch category name
+        if (data.categoryID) {
+          const catRef = doc(db, 'categories', data.categoryID);
+          const catSnap = await getDoc(catRef);
+          if (catSnap.exists()) {
+            setCategoryName(catSnap.data().name);
+          } else {
+            setCategoryName('Unknown');
+          }
+        }
+
+        // Fetch difficulty name (optional)
+        if (data.difficultyID) {
+          const diffRef = doc(db, 'difficulties', data.difficultyID);
+          const diffSnap = await getDoc(diffRef);
+          if (diffSnap.exists()) {
+            setDifficultyName(diffSnap.data().name);
+          } else {
+            setDifficultyName('Unknown');
+          }
+        }
       }
     };
+
     fetchLesson();
   }, [id]);
 
@@ -25,11 +52,11 @@ const LessonDetail = () => {
     <div className="lesson-detail">
       <h1 className="lesson-title">{lesson.title}</h1>
       <p className="lesson-meta">
-        <strong>Category:</strong> {lesson.category}
-        {lesson.difficulty && (
+        <strong>Category:</strong> {categoryName}
+        {lesson.difficultyID && (
           <>
             &nbsp;|&nbsp;
-            <strong>Difficulty:</strong> {lesson.difficulty}
+            <strong>Difficulty:</strong> {difficultyName}
           </>
         )}
       </p>

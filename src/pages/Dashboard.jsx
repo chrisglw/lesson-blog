@@ -1,164 +1,126 @@
-import { useState } from 'react';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import {
+  collection,
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc,
+} from 'firebase/firestore';
 import { db } from '../firebase';
-
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  arrayMove,
-} from '@dnd-kit/sortable';
-
-import BlockItem from '../components/BlockItem';
+import { useNavigate } from 'react-router-dom';
 import '../styles/Dashboard.css';
 
 const Dashboard = () => {
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('');
-  const [difficulty, setDifficulty] = useState('');
-  const [order, setOrder] = useState('');
-  const [visible, setVisible] = useState(true);
-  const [blocks, setBlocks] = useState([]);
+  const [lessons, setLessons] = useState([]);
+  const navigate = useNavigate();
 
-  const sensors = useSensors(useSensor(PointerSensor));
+  useEffect(() => {
+    const fetchLessonsWithMetadata = async () => {
+      try {
+        // Fetch all lessons, categories, and difficulties
+        const lessonsSnap = await getDocs(collection(db, 'lessons'));
+        const categoriesSnap = await getDocs(collection(db, 'categories'));
+        const difficultiesSnap = await getDocs(collection(db, 'difficulties'));
 
-  const handleAddBlock = (type) => {
-    setBlocks([...blocks, { id: Date.now().toString(), type, content: '' }]);
+        // Map category IDs to names
+        const categoriesMap = {};
+        categoriesSnap.forEach((doc) => {
+          categoriesMap[doc.id] = doc.data().name;
+        });
+
+        // Map difficulty IDs to names
+        const difficultiesMap = {};
+        difficultiesSnap.forEach((doc) => {
+          difficultiesMap[doc.id] = doc.data().name;
+        });
+
+        // Combine metadata into lessons
+        const lessonData = lessonsSnap.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            category: categoriesMap[data.categoryID] || 'Unknown',
+            difficulty: data.difficultyID
+              ? difficultiesMap[data.difficultyID] || 'Unknown'
+              : null,
+          };
+        });
+
+        setLessons(lessonData);
+      } catch (error) {
+        console.error('Error fetching lessons:', error);
+      }
+    };
+
+    fetchLessonsWithMetadata();
+  }, []);
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this lesson?')) {
+      await deleteDoc(doc(db, 'lessons', id));
+      setLessons((prev) => prev.filter((lesson) => lesson.id !== id));
+    }
   };
 
-  const handleBlockChange = (id, content) => {
-    setBlocks((prev) =>
-      prev.map((block) => (block.id === id ? { ...block, content } : block))
+  const toggleVisibility = async (id, currentVisible) => {
+    await updateDoc(doc(db, 'lessons', id), { visible: !currentVisible });
+    setLessons((prev) =>
+      prev.map((lesson) =>
+        lesson.id === id ? { ...lesson, visible: !currentVisible } : lesson
+      )
     );
   };
 
-  const handleDeleteBlock = (id) => {
-    setBlocks((prev) => prev.filter((block) => block.id !== id));
-  };
-
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const oldIndex = blocks.findIndex((b) => b.id === active.id);
-    const newIndex = blocks.findIndex((b) => b.id === over.id);
-    setBlocks((prev) => arrayMove(prev, oldIndex, newIndex));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!title || !category || !order) {
-      alert('Please fill all required fields.');
-      return;
-    }
-
-    try {
-      await addDoc(collection(db, 'lessons'), {
-        title,
-        category,
-        order: parseInt(order),
-        visible,
-        blocks,
-        ...(difficulty && { difficulty }),
-        timestamp: Timestamp.now(),
-      });
-
-      alert('Lesson created!');
-      setTimeout(() => {
-        setTitle('');
-        setCategory('');
-        setDifficulty('');
-        setOrder('');
-        setVisible(true);
-        setBlocks([]);
-      }, 100);
-    } catch (error) {
-      console.error('Error saving lesson:', error);
-      alert('Error saving lesson. Check the console for details.');
-    }
-  };
-
   return (
-    <div className="dashboard">
-      <h2>Create a New Lesson</h2>
-      <form onSubmit={handleSubmit} className="lesson-form">
-        <input
-          type="text"
-          placeholder="Lesson Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-        <input
-          type="text"
-          placeholder="Category (e.g., Arrays)"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          required
-        />
-        <input
-          type="text"
-          placeholder="Difficulty (optional, e.g., Easy)"
-          value={difficulty}
-          onChange={(e) => setDifficulty(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="Order"
-          value={order}
-          onChange={(e) => setOrder(e.target.value)}
-          required
-        />
+    <div className="admin-dashboard">
+      <h2>Admin Dashboard</h2>
+      <button
+        className="create-lesson-btn"
+        onClick={() => navigate('/create-lesson')}
+      >
+        + Create New Lesson
+      </button>
 
-        <div className="toggle-container">
-          <span>Visible:</span>
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={visible}
-              onChange={() => setVisible(!visible)}
-            />
-            <span className="slider"></span>
-          </label>
-        </div>
+      <div className="dashboard-lessons-grid">
+        {lessons.map((lesson) => (
+          <div key={lesson.id} className="dashboard-lesson-card">
+            <h3>{lesson.title}</h3>
+            <p>
+              <strong>Category:</strong> {lesson.category}
+            </p>
+            {lesson.difficulty && (
+              <p>
+                <strong>Difficulty:</strong> {lesson.difficulty}
+              </p>
+            )}
+            <p>
+              <strong>Status:</strong>{' '}
+              {lesson.visible ? 'Visible' : 'Hidden'}
+            </p>
 
-        <div className="blocks-section">
-          <h3>Lesson Blocks</h3>
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={blocks.map((block) => block.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              {blocks.map((block) => (
-                <BlockItem
-                  key={block.id}
-                  id={block.id}
-                  block={block}
-                  onChange={handleBlockChange}
-                  onDelete={handleDeleteBlock}
-                />
-              ))}
-            </SortableContext>
-          </DndContext>
-
-          <div className="block-buttons">
-            <button type="button" onClick={() => handleAddBlock('subtitle')}>+ Subtitle</button>
-            <button type="button" onClick={() => handleAddBlock('paragraph')}>+ Paragraph</button>
-            <button type="button" onClick={() => handleAddBlock('code')}>+ Code</button>
+            <div className="dashboard-card-actions">
+              <button onClick={() => navigate(`/lesson/${lesson.id}`)}>
+                View
+              </button>
+              <button onClick={() => navigate(`/edit-lesson/${lesson.id}`)}>
+                Edit
+              </button>
+              <button
+                onClick={() => toggleVisibility(lesson.id, lesson.visible)}
+              >
+                {lesson.visible ? 'Hide' : 'Unhide'}
+              </button>
+              <button
+                className="delete"
+                onClick={() => handleDelete(lesson.id)}
+              >
+                Delete
+              </button>
+            </div>
           </div>
-        </div>
-
-        <button type="submit">Save Lesson</button>
-      </form>
+        ))}
+      </div>
     </div>
   );
 };
