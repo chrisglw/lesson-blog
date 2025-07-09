@@ -5,45 +5,59 @@ import {
   deleteDoc,
   doc,
   updateDoc,
+  writeBatch,
+  query,
+  orderBy,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
+
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import SortableLessonCard from '../components/SortableLessonCard';
+
 import '../styles/Dashboard.css';
 
 const Dashboard = () => {
   const [lessons, setLessons] = useState([]);
   const navigate = useNavigate();
 
+  const sensors = useSensors(useSensor(PointerSensor));
+
   useEffect(() => {
     const fetchLessonsWithMetadata = async () => {
       try {
-        // Fetch all lessons, categories, and difficulties
-        const lessonsSnap = await getDocs(collection(db, 'lessons'));
+        const lessonsSnap = await getDocs(query(collection(db, 'lessons'), orderBy('order')));
         const categoriesSnap = await getDocs(collection(db, 'categories'));
         const difficultiesSnap = await getDocs(collection(db, 'difficulties'));
 
-        // Map category IDs to names
         const categoriesMap = {};
         categoriesSnap.forEach((doc) => {
           categoriesMap[doc.id] = doc.data().name;
         });
 
-        // Map difficulty IDs to names
         const difficultiesMap = {};
         difficultiesSnap.forEach((doc) => {
           difficultiesMap[doc.id] = doc.data().name;
         });
 
-        // Combine metadata into lessons
         const lessonData = lessonsSnap.docs.map((doc) => {
           const data = doc.data();
           return {
             id: doc.id,
             ...data,
             category: categoriesMap[data.categoryID] || 'Unknown',
-            difficulty: data.difficultyID
-              ? difficultiesMap[data.difficultyID] || 'Unknown'
-              : null,
+            difficulty: data.difficultyID ? difficultiesMap[data.difficultyID] || 'Unknown' : null,
           };
         });
 
@@ -72,55 +86,48 @@ const Dashboard = () => {
     );
   };
 
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = lessons.findIndex((lesson) => lesson.id === active.id);
+    const newIndex = lessons.findIndex((lesson) => lesson.id === over.id);
+
+    const newLessons = arrayMove(lessons, oldIndex, newIndex);
+    setLessons(newLessons);
+
+    // Update order in Firestore
+    const batch = writeBatch(db);
+    newLessons.forEach((lesson, index) => {
+      const ref = doc(db, 'lessons', lesson.id);
+      batch.update(ref, { order: index });
+    });
+    await batch.commit();
+  };
+
   return (
     <div className="admin-dashboard">
       <h2>Admin Dashboard</h2>
-      <button
-        className="create-lesson-btn"
-        onClick={() => navigate('/create-lesson')}
-      >
+      <button className="create-lesson-btn" onClick={() => navigate('/create-lesson')}>
         + Create New Lesson
       </button>
 
-      <div className="dashboard-lessons-grid">
-        {lessons.map((lesson) => (
-          <div key={lesson.id} className="dashboard-lesson-card">
-            <h3>{lesson.title}</h3>
-            <p>
-              <strong>Category:</strong> {lesson.category}
-            </p>
-            {lesson.difficulty && (
-              <p>
-                <strong>Difficulty:</strong> {lesson.difficulty}
-              </p>
-            )}
-            <p>
-              <strong>Status:</strong>{' '}
-              {lesson.visible ? 'Visible' : 'Hidden'}
-            </p>
-
-            <div className="dashboard-card-actions">
-              <button onClick={() => navigate(`/lesson/${lesson.id}`)}>
-                View
-              </button>
-              <button onClick={() => navigate(`/edit-lesson/${lesson.id}`)}>
-                Edit
-              </button>
-              <button
-                onClick={() => toggleVisibility(lesson.id, lesson.visible)}
-              >
-                {lesson.visible ? 'Hide' : 'Unhide'}
-              </button>
-              <button
-                className="delete"
-                onClick={() => handleDelete(lesson.id)}
-              >
-                Delete
-              </button>
-            </div>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={lessons.map((l) => l.id)} strategy={verticalListSortingStrategy}>
+          <div className="dashboard-lessons-grid">
+            {lessons.map((lesson) => (
+              <SortableLessonCard
+                key={lesson.id}
+                lesson={lesson}
+                onView={() => navigate(`/lesson/${lesson.id}`)}
+                onEdit={() => navigate(`/edit-lesson/${lesson.id}`)}
+                onToggle={() => toggleVisibility(lesson.id, lesson.visible)}
+                onDelete={() => handleDelete(lesson.id)}
+              />
+            ))}
           </div>
-        ))}
-      </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 };

@@ -7,6 +7,7 @@ import {
   updateDoc,
   query,
   where,
+  addDoc
 } from 'firebase/firestore';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
@@ -35,7 +36,6 @@ const EditLesson = () => {
   const [difficultyInput, setDifficultyInput] = useState('');
   const [categories, setCategories] = useState([]);
   const [difficulties, setDifficulties] = useState([]);
-  const [order, setOrder] = useState('');
   const [visible, setVisible] = useState(true);
   const [blocks, setBlocks] = useState([]);
 
@@ -52,11 +52,8 @@ const EditLesson = () => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         setTitle(data.title);
-        setOrder(data.order.toString());
         setVisible(data.visible);
         setBlocks(data.blocks || []);
-        setCategoryInput(''); // Will match by ID later
-        setDifficultyInput('');
 
         const catSnap = await getDocs(collection(db, 'categories'));
         const diffSnap = await getDocs(collection(db, 'difficulties'));
@@ -92,6 +89,14 @@ const EditLesson = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const getOrCreateRef = async (input, collectionName) => {
+    const q = query(collection(db, collectionName), where('name', '==', input));
+    const snap = await getDocs(q);
+    if (!snap.empty) return snap.docs[0].ref;
+    const docRef = await addDoc(collection(db, collectionName), { name: input });
+    return docRef;
+  };
+
   const handleBlockChange = (blockId, content) => {
     setBlocks((prev) =>
       prev.map((b) => (b.id === blockId ? { ...b, content } : b))
@@ -114,17 +119,9 @@ const EditLesson = () => {
     setBlocks((prev) => arrayMove(prev, oldIndex, newIndex));
   };
 
-  const getOrCreateRef = async (input, collectionName) => {
-    const q = query(collection(db, collectionName), where('name', '==', input));
-    const snap = await getDocs(q);
-    if (!snap.empty) return snap.docs[0].ref;
-    const docRef = await addDoc(collection(db, collectionName), { name: input });
-    return docRef;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !categoryInput || !order) {
+    if (!title || !categoryInput) {
       alert('Please fill all required fields.');
       return;
     }
@@ -140,7 +137,6 @@ const EditLesson = () => {
         title,
         categoryID: categoryRef.id,
         ...(difficultyRef && { difficultyID: difficultyRef.id }),
-        order: parseInt(order),
         visible,
         blocks,
       });
@@ -206,6 +202,7 @@ const EditLesson = () => {
             </div>
           )}
         </div>
+
         <label>Difficulty (optional):</label>
         <div className="custom-dropdown" ref={difficultyDropdownRef}>
           <input
@@ -239,13 +236,7 @@ const EditLesson = () => {
             </div>
           )}
         </div>
-        <input
-          type="number"
-          placeholder="Order"
-          value={order}
-          onChange={(e) => setOrder(e.target.value)}
-          required
-        />
+
         <div className="toggle-container">
           <span>Visible:</span>
           <label className="switch">
@@ -257,6 +248,7 @@ const EditLesson = () => {
             <span className="slider"></span>
           </label>
         </div>
+
         <div className="blocks-section">
           <h3>Lesson Blocks</h3>
           <DndContext
@@ -279,18 +271,14 @@ const EditLesson = () => {
               ))}
             </SortableContext>
           </DndContext>
+
           <div className="block-buttons">
-            <button type="button" onClick={() => handleAddBlock('subtitle')}>
-              + Subtitle
-            </button>
-            <button type="button" onClick={() => handleAddBlock('paragraph')}>
-              + Paragraph
-            </button>
-            <button type="button" onClick={() => handleAddBlock('code')}>
-              + Code
-            </button>
+            <button type="button" onClick={() => handleAddBlock('subtitle')}>+ Subtitle</button>
+            <button type="button" onClick={() => handleAddBlock('paragraph')}>+ Paragraph</button>
+            <button type="button" onClick={() => handleAddBlock('code')}>+ Code</button>
           </div>
         </div>
+
         <button type="submit">Update Lesson</button>
       </form>
     </div>

@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { collection, addDoc, getDocs, Timestamp, query, where } from 'firebase/firestore';
+import {
+  collection,
+  addDoc,
+  getDocs,
+  Timestamp,
+  query,
+  where,
+} from 'firebase/firestore';
 import { db } from '../firebase';
 import {
   DndContext,
@@ -25,7 +32,6 @@ const CreateLesson = () => {
   const [difficulties, setDifficulties] = useState([]);
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [difficultyDropdownOpen, setDifficultyDropdownOpen] = useState(false);
-  const [order, setOrder] = useState('');
   const [visible, setVisible] = useState(true);
   const [blocks, setBlocks] = useState([]);
   const sensors = useSensors(useSensor(PointerSensor));
@@ -87,7 +93,7 @@ const CreateLesson = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !categoryInput || !order) {
+    if (!title || !categoryInput) {
       alert('Please fill all required fields.');
       return;
     }
@@ -99,11 +105,18 @@ const CreateLesson = () => {
         difficultyRef = await getOrCreateRef(difficultyInput.trim(), 'difficulties');
       }
 
+      // 🔥 Get the highest order value and add 1
+      const lessonsSnap = await getDocs(collection(db, 'lessons'));
+      const maxOrder = lessonsSnap.docs.reduce((max, doc) => {
+        const data = doc.data();
+        return typeof data.order === 'number' && data.order > max ? data.order : max;
+      }, 0);
+
       await addDoc(collection(db, 'lessons'), {
         title,
         categoryID: categoryRef.id,
         ...(difficultyRef && { difficultyID: difficultyRef.id }),
-        order: parseInt(order),
+        order: maxOrder + 1,
         visible,
         blocks,
         timestamp: Timestamp.now(),
@@ -113,7 +126,6 @@ const CreateLesson = () => {
       setTitle('');
       setCategoryInput('');
       setDifficultyInput('');
-      setOrder('');
       setVisible(true);
       setBlocks([]);
     } catch (error) {
@@ -208,13 +220,7 @@ const CreateLesson = () => {
             </div>
           )}
         </div>
-        <input
-          type="number"
-          placeholder="Order"
-          value={order}
-          onChange={(e) => setOrder(e.target.value)}
-          required
-        />
+
         <div className="toggle-container">
           <span>Visible:</span>
           <label className="switch">
@@ -226,6 +232,7 @@ const CreateLesson = () => {
             <span className="slider"></span>
           </label>
         </div>
+
         <div className="blocks-section">
           <h3>Lesson Blocks</h3>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -247,6 +254,7 @@ const CreateLesson = () => {
             <button type="button" onClick={() => handleAddBlock('code')}>+ Code</button>
           </div>
         </div>
+
         <button type="submit">Save Lesson</button>
       </form>
     </div>
