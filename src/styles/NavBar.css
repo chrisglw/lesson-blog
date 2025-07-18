@@ -5,13 +5,27 @@
   background-color: #1e1e1e;
   padding: 1rem 2rem;
   color: white;
+  position: relative;
+  z-index: 100;
 }
 
 .logo {
   font-size: 1.5rem;
   font-weight: bold;
+  white-space: nowrap;
 }
 
+/* Desktop logo stays on left */
+.desktop-logo {
+  display: block;
+}
+
+/* Logo inside bar when mobile menu is closed */
+.mobile-logo-bar {
+  display: none;
+}
+
+/* Nav links - default desktop */
 .nav-links {
   display: flex;
   list-style: none;
@@ -54,4 +68,90 @@
 
 .logout-button:active {
   transform: scale(0.97);
+}
+
+/* Hamburger icon */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+  gap: 5px;
+  z-index: 110;
+}
+
+.hamburger span {
+  height: 3px;
+  width: 25px;
+  background: white;
+  transition: 0.3s ease;
+  border-radius: 2px;
+}
+
+.hamburger.open span:nth-child(1) {
+  transform: rotate(45deg) translate(4px, 5px);
+}
+.hamburger.open span:nth-child(2) {
+  opacity: 0;
+}
+.hamburger.open span:nth-child(3) {
+  transform: rotate(-45deg) translate(4px, -5px);
+}
+
+/* Mobile styles */
+@media (max-width: 720px) {
+  .desktop-logo {
+    display: none;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .mobile-logo-bar {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  .nav-links {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #1e1e1e;
+    height: 100vh;
+    width: 250px;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 4rem 2rem;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    gap: 2rem;
+    box-shadow: -4px 0 10px rgba(0, 0, 0, 0.3);
+    z-index: 105;
+  }
+
+  .nav-links.mobile-menu {
+    transform: translateX(0);
+  }
+
+  .nav-links li {
+    width: 100%;
+  }
+
+  .nav-links a,
+  .logout-button {
+    width: 100%;
+    font-size: 1.2rem;
+  }
+
+  .logout-button {
+    margin-top: 1rem;
+  }
+
+  .mobile-logo-menu {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: white;
+  }
 }

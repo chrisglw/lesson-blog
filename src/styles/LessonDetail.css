@@ -67,3 +67,37 @@
   margin-top: 4rem;
   font-size: 1.2rem;
 }
+
+@media (max-width: 1024px) {
+  .lesson-title {
+    font-size: 2.5rem;
+  }
+
+  .lesson-subtitle {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .lesson-detail {
+    padding: 2rem 1rem;
+  }
+
+  .lesson-title {
+    font-size: 2rem;
+  }
+
+  .lesson-meta,
+  .lesson-paragraph {
+    font-size: 1rem;
+  }
+
+  .lesson-subtitle {
+    font-size: 1.4rem;
+  }
+
+  .lesson-code {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+  }
+}

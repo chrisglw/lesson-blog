@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
@@ -7,32 +8,53 @@ import '../styles/NavBar.css';
 const Navbar = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      setMenuOpen(false);
       navigate('/');
     } catch (error) {
       console.error('Logout error:', error);
     }
   };
 
+  const handleNavClick = () => {
+    setMenuOpen(false);
+  };
+
   return (
     <nav className="navbar">
-      <div className="logo">Christian's Learning</div>
-      <ul className="nav-links">
+      <div className={`logo desktop-logo`}>Christian's Learning</div>
+
+      <div
+        className={`hamburger ${menuOpen ? 'open' : ''}`}
+        onClick={() => setMenuOpen(!menuOpen)}
+      >
+        <span />
+        <span />
+        <span />
+      </div>
+
+      <div className="logo mobile-logo-bar">Christian's Learning</div>
+
+      <ul className={`nav-links ${menuOpen ? 'mobile-menu' : ''}`}>
+        {menuOpen && (
+          <li className="mobile-logo-menu">Christian's Learning</li>
+        )}
         <li>
-          <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>
+          <NavLink to="/" end onClick={handleNavClick} className={({ isActive }) => isActive ? 'active' : ''}>
             Home
           </NavLink>
         </li>
         <li>
-          <NavLink to="/lessons" className={({ isActive }) => isActive ? 'active' : ''}>
+          <NavLink to="/lessons" onClick={handleNavClick} className={({ isActive }) => isActive ? 'active' : ''}>
             Lessons
           </NavLink>
         </li>
         <li>
-          <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'active' : ''}>
+          <NavLink to="/dashboard" onClick={handleNavClick} className={({ isActive }) => isActive ? 'active' : ''}>
             Dashboard
           </NavLink>
         </li>

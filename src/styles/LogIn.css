@@ -67,3 +67,19 @@
   text-align: center;
   font-size: 0.9rem;
 }
+
+@media (max-width: 768px) {
+  .login-form {
+    padding: 2rem;
+  }
+
+  .login-form h2 {
+    font-size: 1.5rem;
+  }
+
+  .login-form input,
+  .login-form button {
+    font-size: 0.95rem;
+    padding: 0.6rem 1rem;
+  }
+}

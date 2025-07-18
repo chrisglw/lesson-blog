@@ -38,3 +38,18 @@
 .cta-button:hover {
   background-color: #00a992;
 }
+
+@media (max-width: 768px) {
+  .intro-section h1 {
+    font-size: 2rem;
+  }
+
+  .intro-section p {
+    font-size: 1rem;
+  }
+
+  .cta-button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.95rem;
+  }
+}
